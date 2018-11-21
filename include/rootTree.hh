@@ -4,6 +4,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TString.h"
+#include "TH1F.h"
 
 class rootTree
 {
@@ -41,8 +42,10 @@ class rootTree
     int extendedtime;
     int pileup;
     int overflow;
-      
-  private:
+
+    TH1F *hADC[num_chn];
+    TH1F *hTDC[num_chn];
+    TH1F *hEn[num_chn];
     
 };
 

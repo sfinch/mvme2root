@@ -1,4 +1,14 @@
 
-mvme2root by Sean Finch. Modified from 
-mvme-listfile-dumper - format mvme listfile content and print it to stdout
-by Florian Lüke <f.lueke@mesytec.com>
+mvme2root by Sean Finch <sfinch@tunl.duke.edu>
+Modified from mvme-listfile-dumper by Florian Lüke <f.lueke@mesytec.com>
+
+SYNOPSIS
+    ./mvme2root [-v] filename.mvmelst
+
+DESCRIPTION
+    Converts filename.mvmelst to filename.root. All instances of "mvmelst" are replaced with
+    "root" in the filename and path. The structure of the root file is dictated by the
+    object rootTree.
+
+OPTIONS
+    -v      Verbose mode. Prints out every value. Useful for debugging. 

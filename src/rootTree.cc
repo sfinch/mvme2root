@@ -17,13 +17,20 @@ rootTree::rootTree(TString name)
     rootfile = new TFile(filename, "RECREATE");
     roottree = new TTree("MDPP16", "MDPP16 data");
 
-    roottree->Branch("ADC", &ADC, "ADC[16]/I");
-    roottree->Branch("TDC", &TDC, "TDC[16]/I");
+    roottree->Branch("ADC[16]", &ADC, "ADC[16]/I");
+    roottree->Branch("TDC[16]", &TDC, "TDC[16]/I");
     roottree->Branch("time", &time);
     roottree->Branch("extendedtime", &extendedtime);
     roottree->Branch("pileup", &pileup);
     roottree->Branch("overflow", &overflow);
 
+
+    for (int i=0; i<num_chn; i++){
+        hADC[i] = new TH1F(Form("hADC%i", i), Form("hADC%i", i), 16*4096, 0, 16*4096);
+        hTDC[i] = new TH1F(Form("hTDC%i", i), Form("hTDC%i", i), 16*4096, 0, 16*4096);
+        hEn[i]  = new TH1F(Form("hEn%i", i),  Form("hEn%i", i),  16*4096, 0, 16*4096);
+    }
+    
 }
 
 rootTree::~rootTree()
@@ -52,7 +59,18 @@ void rootTree::writeEvent()
 
 void rootTree::writeTree()
 {
+
+    rootfile->cd();
     roottree->Write();
+
+    rootfile->mkdir("histos");
+    rootfile->cd("histos");
+    for (int i=0; i<num_chn; i++){
+        hADC[i]->Write();
+        hTDC[i]->Write();
+        hEn[i]->Write();
+    }
+
     rootfile->Close();
 }
 
@@ -74,17 +92,21 @@ void rootTree::printValues()
 void rootTree::setADC(int chn, int value){ 
     if (chn<num_chn){
         ADC[chn] = value; 
+        hADC[chn%num_chn]->Fill(value);
     }
     else if(chn<2*num_chn){
         TDC[chn%num_chn] = value;
+        hTDC[chn%num_chn]->Fill(value);
     }
     else{
         ADC[chn%num_chn] = value; 
+        hADC[chn%num_chn]->Fill(value);
     }
 }
 
 void rootTree::setTDC(int chn, int value){
     TDC[chn%num_chn] = value; 
+    hTDC[chn%num_chn]->Fill(value);
 }
 
 void rootTree::setTime(int value){

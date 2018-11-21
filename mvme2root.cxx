@@ -236,12 +236,12 @@ inline int bitExtractor(int word, int numbits, int position){
 }
 
 template<typename LF>
-void process_listfile(std::ifstream &infile, TString rootfilename)
+void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbose)
 {
     using namespace listfile;
 
-    bool dumpData = true;
     bool continueReading = true;
+    int counter = 0;
 
     rootTree rootdata(rootfilename);
 
@@ -257,12 +257,21 @@ void process_listfile(std::ifstream &infile, TString rootfilename)
         {
             case SectionType_Config:
                 {
-                    cout << "Config section of size " << sectionSize << endl;
+                    if (optverbose)
+                        cout << "Config section of size " << sectionSize << endl;
                     infile.seekg(sectionSize * sizeof(u32), std::ifstream::cur);
                 } break;
 
             case SectionType_Event:
                 {
+                    if (optverbose){
+                        cout << "Event " << counter << endl;
+                    }
+                    else{
+                        if (counter%10000==0){
+                            cout << '\r' << "Processing event " << counter;
+                        }
+                    }
                     rootdata.initEvent();
                     int pu = 0;
                     int ov = 0;
@@ -272,8 +281,10 @@ void process_listfile(std::ifstream &infile, TString rootfilename)
                     int extended = 0;
 
                     u32 eventType = (sectionHeader & LF::EventTypeMask) >> LF::EventTypeShift;
-                    printf("Event section: eventHeader=0x%08x, eventType=%d, eventSize=%u\n",
-                           sectionHeader, eventType, sectionSize);
+                    if (optverbose){
+                        printf("Event section: eventHeader=0x%08x, eventType=%d, eventSize=%u\n",
+                               sectionHeader, eventType, sectionSize);
+                    }
 
                     u32 wordsLeft = sectionSize;
 
@@ -286,51 +297,59 @@ void process_listfile(std::ifstream &infile, TString rootfilename)
                         u32 moduleType = (subEventHeader & LF::ModuleTypeMask) >> LF::ModuleTypeShift;
                         u32 subEventSize = (subEventHeader & LF::SubEventSizeMask) >> LF::SubEventSizeShift;
 
-                        printf("  subEventHeader=0x%08x, moduleType=%u (%s), subEventSize=%u\n",
-                               subEventHeader, moduleType, get_vme_module_name((VMEModuleType)moduleType),
-                               subEventSize);
+                        if (optverbose){
+                            printf("  subEventHeader=0x%08x, moduleType=%u (%s), subEventSize=%u\n",
+                                   subEventHeader, moduleType, get_vme_module_name((VMEModuleType)moduleType),
+                                   subEventSize);
+                        }
 
                         for (u32 i=0; i<subEventSize; ++i)
                         {
                             u32 subEventData;
                             infile.read((char *)&subEventData, sizeof(u32));
 
-                            if (dumpData){
+                            if (optverbose)
                                 printf("    %2u = 0x%08x\n", i, subEventData);
 
-                                if (subEventData == 0xffffffff){
-                                    cout << "Fill" << endl;
+                            if (subEventData == 0xffffffff){
+                                if (optverbose)
+                                    cout << "\tFill" << endl;
+                            }
+                            else{
+                                int sig = bitExtractor(subEventData, 4, 28);
+                                if (sig==4){ //header
+                                    if (optverbose)
+                                        cout << "\tHeader" << endl;
                                 }
-                                else{
-                                    int sig = bitExtractor(subEventData, 4, 28);
-                                    if (sig==4){ //header
-                                        cout << "Header" << endl;
-                                    }
-                                    else if (sig==1){//data
-                                        cout << "Data" << endl;
-                                        pu = bitExtractor(subEventData, 1, 23);
-                                        ov = bitExtractor(subEventData, 1, 22);
-                                        chn = bitExtractor(subEventData, 5, 16);
-                                        data = bitExtractor(subEventData, 16, 0);
-                                        cout << pu << "\t" << ov << "\t" << chn << "\t" << data << endl;
-                                        rootdata.setPileup(pu);
-                                        rootdata.setOverflow(ov);
-                                        rootdata.setADC(chn, data);
-                                    }
-                                    else if(sig==2){//extended time stamp
-                                        extended = bitExtractor(subEventData, 16, 0);
-                                        cout << "Extended time stamp:\t" << extended << endl;
-                                        rootdata.setExtendedTime(extended);
-                                    }
-                                    else if(sig>=12){//end of event
-                                        cout << "End of event" << endl;
-                                        time = bitExtractor(subEventData, 30, 0);
-                                        cout << "Time:\t" << time << endl;
-                                        rootdata.setTime(time);
+                                else if (sig==1){//data
+                                    pu = bitExtractor(subEventData, 1, 23);
+                                    ov = bitExtractor(subEventData, 1, 22);
+                                    chn = bitExtractor(subEventData, 5, 16);
+                                    data = bitExtractor(subEventData, 16, 0);
+                                    rootdata.setPileup(pu);
+                                    rootdata.setOverflow(ov);
+                                    rootdata.setADC(chn, data);
+                                    
+                                    if (optverbose){
+                                        cout << "\tData" << endl;
+                                        cout << "\t" << pu << "\t" << ov << "\t" 
+                                             << chn << "\t" << data << endl;
                                     }
                                 }
-
-                                
+                                else if(sig==2){//extended time stamp
+                                    extended = bitExtractor(subEventData, 16, 0);
+                                    rootdata.setExtendedTime(extended);
+                                    if (optverbose)
+                                        cout << "\tExtended time stamp:\t" << extended << endl;
+                                }
+                                else if(sig>=12){//end of event
+                                    time = bitExtractor(subEventData, 30, 0);
+                                    rootdata.setTime(time);
+                                    if (optverbose){
+                                        cout << "\tEnd of event" << endl;
+                                        cout << "\tTime:\t" << time << endl;
+                                    }
+                                }
                             }
 
                         }
@@ -339,18 +358,21 @@ void process_listfile(std::ifstream &infile, TString rootfilename)
 
                     u32 eventEndMarker;
                     infile.read((char *)&eventEndMarker, sizeof(u32));
-                    printf("   eventEndMarker=0x%08x\n", eventEndMarker);
+                    if (optverbose)
+                        printf("   eventEndMarker=0x%08x\n", eventEndMarker);
                     rootdata.writeEvent();
+                    counter++;
                 } break;
 
             case SectionType_Timetick:
                 {
-                    printf("Timetick\n");
+                    if (optverbose)
+                        printf("Timetick\n");
                 } break;
 
             case SectionType_End:
                 {
-                    printf("Found Listfile End section\n");
+                    printf("\nFound Listfile End section\n");
                     continueReading = false;
 
                     auto currentFilePos = infile.tellg();
@@ -375,10 +397,11 @@ void process_listfile(std::ifstream &infile, TString rootfilename)
                 } break;
         }
     }
+    cout << counter << " events total" << endl;
     rootdata.writeTree();
 }
 
-void process_listfile(std::ifstream &infile, TString rootfilename)
+void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbose)
 {
     u32 fileVersion = 0;
 
@@ -405,21 +428,29 @@ void process_listfile(std::ifstream &infile, TString rootfilename)
 
     if (fileVersion == 0)
     {
-        process_listfile<listfile_v0>(infile, rootfilename);
+        process_listfile<listfile_v0>(infile, rootfilename, optverbose);
     }
     else
     {
-        process_listfile<listfile_v1>(infile, rootfilename);
+        process_listfile<listfile_v1>(infile, rootfilename, optverbose);
     }
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    bool optverbose = 0;
+
+    if ((argc<2) || (argc>3))
     {
         cerr << "Invalid number of arguments" << endl;
-        cerr << "Usage: " << argv[0] << " <listfile>" << endl;
+        cerr << "Usage: " << argv[0] << " [-v] <listfile>" << endl;
         return 1;
+    }
+
+    if (argc==3){
+        if (!strcmp(argv[1], "-v"))
+            optverbose = 1;
+        argv[1] = argv[2];
     }
 
     std::ifstream infile(argv[1], std::ios::binary);
@@ -437,7 +468,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        process_listfile(infile, rootfilename);
+        process_listfile(infile, rootfilename, optverbose);
     }
     catch (const std::exception &e)
     {
