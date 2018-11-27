@@ -15,11 +15,12 @@ class rootTree
 
   public:
      
-    void initEvent();
+    void initEvent();   //call at start of event
     void printValues();
-    void writeEvent();
-    void writeTree();
+    void writeEvent();  //call at end of event
+    void writeTree();`  //call at end of file
 
+    //setters
     void setADC(int chn, int value);
     void setTDC(int chn, int value);
     void setTime(int value);
@@ -36,6 +37,7 @@ class rootTree
 
     TString filename;
     
+    //values from MDPP-16
     int ADC[num_chn];
     int TDC[num_chn];
     int time;
@@ -43,13 +45,18 @@ class rootTree
     int pileup;
     int overflow;
 
+    //calculated  values
+    int lasttime;       //time stamp of last event
+    bool extendedON;    //0 extended time stamp off,
+                        //1 extended time stamp on
+    double seconds;     //seconds since start of run
+
+    //Projected histograms
     TH1F *hADC[num_chn];
     TH1F *hTDC[num_chn];
     TH1F *hEn[num_chn];
     
 };
-
-
 
 #endif
 

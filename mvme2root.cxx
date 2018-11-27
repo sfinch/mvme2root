@@ -316,42 +316,43 @@ void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbo
                                     cout << "\tFill" << endl;
                             }
                             else{
-                                int sig = bitExtractor(subEventData, 4, 28);
-                                if (sig==4){ //header
-                                    if (optverbose)
-                                        cout << "\tHeader" << endl;
-                                }
-                                else if (sig==1){//data
-                                    pu = bitExtractor(subEventData, 1, 23);
-                                    ov = bitExtractor(subEventData, 1, 22);
-                                    chn = bitExtractor(subEventData, 5, 16);
-                                    data = bitExtractor(subEventData, 16, 0);
-                                    rootdata.setPileup(pu);
-                                    rootdata.setOverflow(ov);
-                                    rootdata.setADC(chn, data);
-                                    
-                                    if (optverbose){
-                                        cout << "\tData" << endl;
-                                        cout << "\t" << pu << "\t" << ov << "\t" 
-                                             << chn << "\t" << data << endl;
+                                if ((moduleType==4)||(moduleType==7)){
+                                    int sig = bitExtractor(subEventData, 4, 28);
+                                    if (sig==4){ //header
+                                        if (optverbose)
+                                            cout << "\tHeader" << endl;
                                     }
-                                }
-                                else if(sig==2){//extended time stamp
-                                    extended = bitExtractor(subEventData, 16, 0);
-                                    rootdata.setExtendedTime(extended);
-                                    if (optverbose)
-                                        cout << "\tExtended time stamp:\t" << extended << endl;
-                                }
-                                else if(sig>=12){//end of event
-                                    time = bitExtractor(subEventData, 30, 0);
-                                    rootdata.setTime(time);
-                                    if (optverbose){
-                                        cout << "\tEnd of event" << endl;
-                                        cout << "\tTime:\t" << time << endl;
+                                    else if (sig==1){//data
+                                        pu = bitExtractor(subEventData, 1, 23);
+                                        ov = bitExtractor(subEventData, 1, 22);
+                                        chn = bitExtractor(subEventData, 5, 16);
+                                        data = bitExtractor(subEventData, 16, 0);
+                                        rootdata.setPileup(pu);
+                                        rootdata.setOverflow(ov);
+                                        rootdata.setADC(chn, data);
+                                        
+                                        if (optverbose){
+                                            cout << "\tData" << endl;
+                                            cout << "\t" << pu << "\t" << ov << "\t" 
+                                                 << chn << "\t" << data << endl;
+                                        }
+                                    }
+                                    else if(sig==2){//extended time stamp
+                                        extended = bitExtractor(subEventData, 16, 0);
+                                        rootdata.setExtendedTime(extended);
+                                        if (optverbose)
+                                            cout << "\tExtended time stamp:\t" << extended << endl;
+                                    }
+                                    else if(sig>=12){//end of event
+                                        time = bitExtractor(subEventData, 30, 0);
+                                        rootdata.setTime(time);
+                                        if (optverbose){
+                                            cout << "\tEnd of event" << endl;
+                                            cout << "\tTime:\t" << time << endl;
+                                        }
                                     }
                                 }
                             }
-
                         }
                         wordsLeft -= subEventSize;
                     }
