@@ -5,6 +5,7 @@
 #include "TTree.h"
 #include "TString.h"
 #include "TH1F.h"
+#include "TDatime.h"
 
 class rootTree
 {
@@ -18,7 +19,10 @@ class rootTree
     void initEvent();   //call at start of event
     void printValues();
     void writeEvent();  //call at end of event
-    void writeTree();`  //call at end of file
+    void writeTree();   //call at end of file
+
+    int readAnalysis();
+    int readLog();
 
     //setters
     void setADC(int chn, int value);
@@ -36,6 +40,7 @@ class rootTree
     TTree *roottree;
 
     TString filename;
+    TString rootfilename;
     
     //values from MDPP-16
     int ADC[num_chn];
@@ -44,6 +49,14 @@ class rootTree
     int extendedtime;
     int pileup;
     int overflow;
+
+    //values from messages.log
+    TDatime start_time;
+    TDatime stop_time;
+
+    //values from analysis.analysis (energy calibration)
+    double m[num_chn], b[num_chn];
+    double min[num_chn], max[num_chn];
 
     //calculated  values
     int lasttime;       //time stamp of last event

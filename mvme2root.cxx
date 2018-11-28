@@ -236,14 +236,14 @@ inline int bitExtractor(int word, int numbits, int position){
 }
 
 template<typename LF>
-void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbose)
+void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
 {
     using namespace listfile;
 
     bool continueReading = true;
     int counter = 0;
 
-    rootTree rootdata(rootfilename);
+    rootTree rootdata(filename);
 
     while (continueReading)
     {
@@ -402,7 +402,7 @@ void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbo
     rootdata.writeTree();
 }
 
-void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbose)
+void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
 {
     u32 fileVersion = 0;
 
@@ -429,11 +429,11 @@ void process_listfile(std::ifstream &infile, TString rootfilename, bool optverbo
 
     if (fileVersion == 0)
     {
-        process_listfile<listfile_v0>(infile, rootfilename, optverbose);
+        process_listfile<listfile_v0>(infile, filename, optverbose);
     }
     else
     {
-        process_listfile<listfile_v1>(infile, rootfilename, optverbose);
+        process_listfile<listfile_v1>(infile, filename, optverbose);
     }
 }
 
@@ -464,12 +464,11 @@ int main(int argc, char *argv[])
 
     infile.exceptions(std::ifstream::badbit | std::ifstream::failbit | std::ifstream::eofbit);
 
-    TString rootfilename = argv[1];
-    rootfilename.ReplaceAll("mvmelst","root");
+    TString filename = argv[1];
 
     try
     {
-        process_listfile(infile, rootfilename, optverbose);
+        process_listfile(infile, filename, optverbose);
     }
     catch (const std::exception &e)
     {
