@@ -1,6 +1,7 @@
 
 mvme2root by Sean Finch <sfinch@tunl.duke.edu>
 Modified from mvme-listfile-dumper by Florian Lüke <f.lueke@mesytec.com>
+Currently only works for one MDPP-16 module with SCP/RCP firmware.
 
 SYNOPSIS
     ./mvme2root [-v] filename.mvmelst
