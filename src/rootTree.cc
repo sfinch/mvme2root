@@ -44,8 +44,8 @@ rootTree::rootTree(TString name)
     stop_time = TDatime();
     initEvent();
 
-    readLog();
     readAnalysis();
+    readLog();
 
     //create histograms
     for (int i=0; i<num_chn; i++){

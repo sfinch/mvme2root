@@ -28,6 +28,7 @@
 
 #include "TString.h"
 #include "rootTree.hh"
+#include "TROOT.h"
 
 typedef uint8_t  u8;
 typedef uint16_t u16;
@@ -447,25 +448,45 @@ int main(int argc, char *argv[])
         cerr << "Usage: " << argv[0] << " [-v] <listfile>" << endl;
         return 1;
     }
-
-    if (argc==3){
+    if (argc==3){ //verbose option
         if (!strcmp(argv[1], "-v"))
             optverbose = 1;
         argv[1] = argv[2];
     }
 
-    std::ifstream infile(argv[1], std::ios::binary);
+    TString filename = argv[1];
+    TString dir = argv[1];
+    int index = dir.Last('/');
+    dir.Remove(index+1,dir.Sizeof());
+
+    //Unzip if zipfile is given
+    TString zipfilename = argv[1];
+    TString zipcommand = ".! unzip -o " + zipfilename;
+    if (filename.EndsWith(".zip")){
+        cout << "----- Unzipping file " << filename.Data() << " -----" << endl;
+        if (dir.Sizeof()>1)
+            zipcommand.Append(" -d " + dir);
+        cout << zipcommand.Data() << endl;
+        gROOT->ProcessLine(zipcommand.Data());
+
+        //change filename to point to unzipped mvmelst file
+        filename.Remove(filename.Sizeof()-4, filename.Sizeof());
+        filename.Append("mvmelst");
+        cout << "----- Unzip " << filename.Data() << " complete -----" << endl;
+    }
+
+    //open mvmelst file for reading
+    std::ifstream infile(filename.Data(), std::ios::binary);
 
     if (!infile.is_open())
     {
-        cerr << "Error opening " << argv[1] << " for reading: " << std::strerror(errno) << endl;
+        cerr << "Error opening " << filename.Data() << " for reading: " << std::strerror(errno) << endl;
         return 1;
     }
 
     infile.exceptions(std::ifstream::badbit | std::ifstream::failbit | std::ifstream::eofbit);
 
-    TString filename = argv[1];
-
+    //process mvmelst file
     try
     {
         process_listfile(infile, filename, optverbose);
@@ -475,6 +496,31 @@ int main(int argc, char *argv[])
         cerr << "Error processing listfile: " << e.what() << endl;
         return 1;
     }
+
+    //clean up mvme files (save space)
+    std::ifstream test_lstfile(filename.Data());
+    std::ifstream test_zipfile(zipfilename.Data());
+    if ((test_lstfile.is_open())&&(test_zipfile.is_open())){
+
+        cout << "Removing mvmelst file, analysis.analysis, and messages.log" << endl;
+
+        //delete mvmelst file
+        TString rmmvmelst = ".! rm -f " + filename;
+        cout << rmmvmelst.Data() << endl;;
+        gROOT->ProcessLine(rmmvmelst.Data());
+
+        //delete analysis.analysis
+        TString rmanalysis = ".! rm -f " + dir + "analysis.analysis";
+        cout << rmanalysis.Data() << endl;;
+        gROOT->ProcessLine(rmanalysis.Data());
+
+        //delete messages.log
+        TString rmlog = ".! rm -f " + dir + "messages.log";
+        cout << rmlog.Data() << endl;;
+        gROOT->ProcessLine(rmlog.Data());
+
+    }
+
 
     return 0;
 }
