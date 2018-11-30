@@ -9,7 +9,9 @@ SYNOPSIS
 DESCRIPTION
     Converts filename.mvmelst to filename.root. All instances of "mvmelst" are replaced with
     "root" in the filename and path. The structure of the root file is dictated by the
-    object rootTree.
+    object rootTree. Works with either .mvmelst files or .zip files. When using .zip
+    files, the .mvmelst file inside the zip file must have the same filename as the .zip
+    file (i.e. you cannot rename the zip files).
 
 OPTIONS
     -v      Verbose mode. Prints out every value. Useful for debugging. 
