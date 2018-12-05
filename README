@@ -17,7 +17,7 @@ DESCRIPTION
     inside the a zip file must have the same filename as the .zip file (i.e. you cannot
     rename the zip files). 
     
-    The energy calibration is extractred from the file analysis.analysis, and the
+    The energy calibration is extracted from the file analysis.analysis, and the
     time is extracted from messages.log. These files are included in the .zip file. If you
     are using a .mvmelst file, these values may be incorrect. 
 

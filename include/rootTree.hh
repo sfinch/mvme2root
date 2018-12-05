@@ -6,6 +6,7 @@
 #include "TString.h"
 #include "TH1F.h"
 #include "TDatime.h"
+#include "TVectorD.h"
 
 class rootTree
 {
@@ -55,7 +56,8 @@ class rootTree
     TDatime stop_time;
 
     //values from analysis.analysis (energy calibration)
-    double m[num_chn], b[num_chn];
+    TVectorD m;
+    TVectorD b;
     double min[num_chn], max[num_chn];
 
     //calculated  values

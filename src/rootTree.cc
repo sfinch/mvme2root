@@ -34,6 +34,8 @@ rootTree::rootTree(TString name)
     extendedON = 0;
     time = 0;
     extendedtime = 0;
+    b.ResizeTo(num_chn);
+    m.ResizeTo(num_chn);
     for (int i=0; i<num_chn; i++){
         b[i] = 0;
         m[i] = 1;
@@ -95,6 +97,8 @@ void rootTree::writeTree()
     TNamed stopT("stop_time",stop_time.AsSQLString());
     startT.Write();
     stopT.Write();
+    m.Write("m[16]");
+    b.Write("b[16]");
 
     rootfile->mkdir("histos");
     rootfile->cd("histos");
