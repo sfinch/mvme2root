@@ -4,14 +4,24 @@ Modified from mvme-listfile-dumper by Florian Lüke <f.lueke@mesytec.com>
 Currently only works for one MDPP-16 module with SCP/RCP firmware.
 
 SYNOPSIS
-    ./mvme2root [-v] filename.mvmelst
+    ./mvme2root [-v] [FILE]...
 
 DESCRIPTION
-    Converts filename.mvmelst to filename.root. All instances of "mvmelst" are replaced with
-    "root" in the filename and path. The structure of the root file is dictated by the
-    object rootTree. Works with either .mvmelst files or .zip files. When using .zip
-    files, the .mvmelst file inside the zip file must have the same filename as the .zip
-    file (i.e. you cannot rename the zip files).
+    Converts filename.mvmelst or filename.zip to filename.root. If multiple files are
+    given, does this for files, but will promptly abort batch execution if an error is
+    encountered with a file. All instances of "mvmelst" are replaced with "root" in the
+    filename and path. 
+    
+    Works with either .mvmelst files or .zip files. Unzipping is done
+    using the command "zip -o" on your system. When using .zip files, the .mvmelst file
+    inside the a zip file must have the same filename as the .zip file (i.e. you cannot
+    rename the zip files). 
+    
+    The energy calibration is extractred from the file analysis.analysis, and the
+    time is extracted from messages.log. These files are included in the .zip file. If you
+    are using a .mvmelst file, these values may be incorrect. 
+
+    The structure of the root file and tree is dictated by the object rootTree. 
 
 OPTIONS
     -v      Verbose mode. Prints out every value. Useful for debugging. 
