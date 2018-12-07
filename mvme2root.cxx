@@ -532,6 +532,7 @@ int main(int argc, char *argv[])
 
         cout << "----- " << argv[file] << " complete -----" << endl;
     }
+    cout << "----- " << argc-startindex << " files converted -----" << endl;
 
 
     return 0;

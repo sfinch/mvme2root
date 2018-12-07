@@ -22,8 +22,8 @@ rootTree::rootTree(TString name)
     rootfile = new TFile(rootfilename, "RECREATE");
     roottree = new TTree("MDPP16", "MDPP16 data");
 
-    roottree->Branch("ADC[16]", &ADC, "ADC[16]/I");
-    roottree->Branch("TDC[16]", &TDC, "TDC[16]/I");
+    roottree->Branch(Form("ADC[%i]", num_chn), &ADC, Form("ADC[%i]/I", num_chn));
+    roottree->Branch(Form("TDC[%i]", num_chn), &TDC, Form("TDC[%i]/I", num_chn));
     roottree->Branch("time", &time);
     roottree->Branch("extendedtime", &extendedtime);
     roottree->Branch("pileup", &pileup);
@@ -97,8 +97,8 @@ void rootTree::writeTree()
     TNamed stopT("stop_time",stop_time.AsSQLString());
     startT.Write();
     stopT.Write();
-    m.Write("m[16]");
-    b.Write("b[16]");
+    m.Write(Form("m[%i]", num_chn));
+    b.Write(Form("b[%i]", num_chn));
 
     rootfile->mkdir("histos");
     rootfile->cd("histos");
