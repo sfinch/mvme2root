@@ -24,7 +24,7 @@ rootTree::rootTree(TString name)
 
     roottree->Branch(Form("ADC[%i]", num_chn), &ADC, Form("ADC[%i]/I", num_chn));
     roottree->Branch(Form("TDC[%i]", num_chn), &TDC, Form("TDC[%i]/I", num_chn));
-    roottree->Branch("time", &time);
+    roottree->Branch("time_stamp", &time_stamp);
     roottree->Branch("extendedtime", &extendedtime);
     roottree->Branch("pileup", &pileup);
     roottree->Branch("overflow", &overflow);
@@ -32,7 +32,7 @@ rootTree::rootTree(TString name)
 
     //initialize variables
     extendedON = 0;
-    time = 0;
+    time_stamp = 0;
     extendedtime = 0;
     b.ResizeTo(num_chn);
     m.ResizeTo(num_chn);
@@ -67,8 +67,8 @@ rootTree::~rootTree()
 void rootTree::initEvent()
 {
     //call at start of event
-    lasttime = time;
-    time = 0;
+    lasttime = time_stamp;
+    time_stamp = 0;
     for (int i=0; i<num_chn; i++){
         ADC[i] = 0;
         TDC[i] = 0;
@@ -81,9 +81,9 @@ void rootTree::initEvent()
 void rootTree::writeEvent()
 {
     //call at end of event
-    if ((time<lasttime)&&(extendedON==0))
+    if ((time_stamp<lasttime)&&(extendedON==0))
         extendedtime++;
-    seconds = extendedtime*67.108864 + time/16000000.;
+    seconds = extendedtime*67.108864 + time_stamp/16000000.;
     roottree->Fill();
 }
 
@@ -119,7 +119,7 @@ void rootTree::printValues()
     for (int i=0; i<num_chn; i++){
         cout << i << "\t" << ADC[i] << "\t" << TDC[i] << endl;
     }
-    cout << "Time:\t" <<time << endl;
+    cout << "Time:\t" <<time_stamp << endl;
     cout << "Extended time:\t" << extendedtime << endl;
     cout << "Pileup flag:\t" << pileup << endl;
     cout << "Overflow/underflow flag:\t" << overflow << endl;
@@ -266,7 +266,7 @@ void rootTree::setTDC(int chn, int value){
 }
 
 void rootTree::setTime(int value){
-    time = value;
+    time_stamp = value;
 }
 
 void rootTree::setExtendedTime(int value){

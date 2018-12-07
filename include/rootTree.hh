@@ -46,7 +46,7 @@ class rootTree
     //values from MDPP-16
     int ADC[num_chn];
     int TDC[num_chn];
-    int time;
+    int time_stamp;
     int extendedtime;
     int pileup;
     int overflow;
