@@ -192,16 +192,15 @@ int rootTree::readAnalysis(){
     }
     else{
         cout << "Found " << analysis_filename.Data() << endl;
-    }
-    
-    //read file
+    } //read file
+    bool foundCal = 0;
     do{
         infile.getline(line,200);
         sLine = line;
         //search for amplitude calibration
-        if (sLine.Contains("\"mdpp16.amplitude_raw\"")){
+        if (sLine.Contains("\"analysis::CalibrationMinMax\"")){
             //forward to calibrations 
-            int maxitr = 100;
+            int maxitr = 7;
             int itr = 0;
             do{
                 infile.getline(line,200);
@@ -227,10 +226,24 @@ int rootTree::readAnalysis(){
                         sLine.ReplaceAll("unitMin","");
                         min[i] = sLine.Atof();
                     }
+                    else if (sLine.Contains("]")){
+                        i=num_chn;
+                        j=4;
+                    }
                 }
             }
+            itr=0;
+            do{
+                infile.getline(line,200);
+                sLine = line;
+                if (sLine.Contains("mdpp16.amplitude")){
+                    cout << "Found ADC calibration" << endl;
+                    foundCal=1;
+                }
+                itr++;
+            }while((itr<maxitr)&&(!(sLine.Contains("name"))));
         }
-    }while(!(infile.eof()));
+    }while(!(foundCal||infile.eof()));
 
     //linear calibration parameters
     for (int i=0; i<num_chn; i++){
