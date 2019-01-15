@@ -1,5 +1,5 @@
 
-#include "rootTree.hh"
+#include "mdpp16_SCP.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -14,11 +14,13 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-rootTree::rootTree(TString name)
+mdpp16_SCP::mdpp16_SCP(TString name)
 {
     //create root file and tre
     filename = name;
     rootfilename = name.ReplaceAll("mvmelst","root");
+    rootfilename = name.ReplaceAll("listfiles","data_root");
+    cout << "Root file name: " << rootfilename << endl;
     rootfile = new TFile(rootfilename, "RECREATE");
     roottree = new TTree("MDPP16", "MDPP16 data");
 
@@ -59,12 +61,12 @@ rootTree::rootTree(TString name)
     
 }
 
-rootTree::~rootTree()
+mdpp16_SCP::~mdpp16_SCP()
 {
     
 }
 
-void rootTree::initEvent()
+void mdpp16_SCP::initEvent()
 {
     //call at start of event
     lasttime = time_stamp;
@@ -78,7 +80,7 @@ void rootTree::initEvent()
     seconds = 0;
 }
 
-void rootTree::writeEvent()
+void mdpp16_SCP::writeEvent()
 {
     //call at end of event
     if ((time_stamp<lasttime)&&(extendedON==0))
@@ -87,7 +89,7 @@ void rootTree::writeEvent()
     roottree->Fill();
 }
 
-void rootTree::writeTree()
+void mdpp16_SCP::writeTree()
 {
     //call at end of file
     rootfile->cd();
@@ -112,7 +114,7 @@ void rootTree::writeTree()
 }
 
 
-void rootTree::printValues()
+void mdpp16_SCP::printValues()
 {
     
     cout << "Chn \t ADC \t TDC" << endl;
@@ -127,7 +129,7 @@ void rootTree::printValues()
 }
 
 
-int rootTree::readLog(){
+int mdpp16_SCP::readLog(){
 
     //variables
     char line[200];
@@ -172,7 +174,7 @@ int rootTree::readLog(){
     return 0;
 }
 
-int rootTree::readAnalysis(){
+int mdpp16_SCP::readAnalysis(){
     
     //variables
     char line[200];
@@ -256,7 +258,7 @@ int rootTree::readAnalysis(){
 
 
 //setters
-void rootTree::setADC(int chn, int value){ 
+void mdpp16_SCP::setADC(int chn, int value){ 
     if (chn<num_chn){
         ADC[chn] = value; 
         hADC[chn%num_chn]->AddBinContent(value);
@@ -273,24 +275,25 @@ void rootTree::setADC(int chn, int value){
     }
 }
 
-void rootTree::setTDC(int chn, int value){
+void mdpp16_SCP::setTDC(int chn, int value){
     TDC[chn%num_chn] = value; 
     hTDC[chn%num_chn]->AddBinContent(value);
 }
 
-void rootTree::setTime(int value){
+void mdpp16_SCP::setTime(int value){
     time_stamp = value;
 }
 
-void rootTree::setExtendedTime(int value){
+void mdpp16_SCP::setExtendedTime(int value){
     extendedON = 1;
-    extendedtime = value; }
+    extendedtime = value; 
+}
 
-void rootTree::setPileup(int value){
+void mdpp16_SCP::setPileup(int value){
     pileup = value;
 }
 
-void rootTree::setOverflow(int value){
+void mdpp16_SCP::setOverflow(int value){
     overflow = value;
 }
 

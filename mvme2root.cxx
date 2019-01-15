@@ -27,7 +27,8 @@
 #include <map>
 
 #include "TString.h"
-#include "rootTree.hh"
+#include "mdpp16_SCP.hh"
+#include "mdpp16_QDC.hh"
 #include "TROOT.h"
 
 typedef uint8_t  u8;
@@ -243,8 +244,16 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
 
     bool continueReading = true;
     int counter = 0;
-
-    rootTree rootdata(filename);
+    int pu = 0;
+    int ov = 0;
+    int chn = 0;
+    int data = 0;
+    int time = 0;
+    int extended = 0;
+    int sig = 0;
+    
+    mdpp16_SCP rootdata(filename);
+    //mdpp16_QDC rootdata(filename);
 
     while (continueReading)
     {
@@ -274,12 +283,13 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                         }
                     }
                     rootdata.initEvent();
-                    int pu = 0;
-                    int ov = 0;
-                    int chn = 0;
-                    int data = 0;
-                    int time = 0;
-                    int extended = 0;
+                    pu = 0;
+                    ov = 0;
+                    chn = 0;
+                    data = 0;
+                    time = 0;
+                    extended = 0;
+                    sig = 0;
 
                     u32 eventType = (sectionHeader & LF::EventTypeMask) >> LF::EventTypeShift;
                     if (optverbose){
@@ -317,21 +327,38 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                                     cout << "\tFill" << endl;
                             }
                             else{
-                                if ((moduleType==4)||(moduleType==7)){
-                                    int sig = bitExtractor(subEventData, 4, 28);
+                                //Check for MDPP-16
+                                if ((moduleType==4)||(moduleType==7)||(moduleType==8)){
+                                    sig = bitExtractor(subEventData, 4, 28);
                                     if (sig==4){ //header
                                         if (optverbose)
                                             cout << "\tHeader" << endl;
                                     }
                                     else if (sig==1){//data
-                                        pu = bitExtractor(subEventData, 1, 23);
-                                        ov = bitExtractor(subEventData, 1, 22);
-                                        chn = bitExtractor(subEventData, 5, 16);
-                                        data = bitExtractor(subEventData, 16, 0);
-                                        rootdata.setPileup(pu);
-                                        rootdata.setOverflow(ov);
-                                        rootdata.setADC(chn, data);
-                                        
+                                        //MDPP16 with SCP or RCP firmware
+                                        if ((moduleType==4)||(moduleType==7)){
+                                            chn = bitExtractor(subEventData, 5, 16);
+                                            data = bitExtractor(subEventData, 16, 0);
+                                            rootdata.setADC(chn, data);
+
+                                            if (chn<16){
+                                                pu = bitExtractor(subEventData, 1, 23);
+                                                ov = bitExtractor(subEventData, 1, 22);
+                                                rootdata.setPileup(pu);
+                                                rootdata.setOverflow(ov);
+                                            }
+                                        }
+                                        //MDPP16 with QDC
+                                        if (moduleType==8){
+                                            chn = bitExtractor(subEventData, 6, 16);
+                                            data = bitExtractor(subEventData, 16, 0);
+                                            rootdata.setADC(chn, data);
+
+                                            if (chn<16){
+                                                ov = bitExtractor(subEventData, 1, 22);
+                                                rootdata.setOverflow(ov);
+                                            }
+                                        }
                                         if (optverbose){
                                             cout << "\tData" << endl;
                                             cout << "\t" << pu << "\t" << ov << "\t" 
@@ -479,6 +506,9 @@ int main(int argc, char *argv[])
             filename.Remove(filename.Sizeof()-4, filename.Sizeof());
             filename.Append("mvmelst");
             cout << "----- Unzip " << filename.Data() << " complete -----" << endl;
+        }
+        else{
+            zipfilename = "";
         }
 
         //open mvmelst file for reading

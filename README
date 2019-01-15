@@ -10,6 +10,7 @@ DESCRIPTION
     Converts filename.mvmelst or filename.zip to filename.root. If multiple files are
     given, does this for files, but will promptly abort batch execution if an error is
     encountered with a file. All instances of "mvmelst" are replaced with "root" in the
+    filename and path. All instances of "listfiles" are replaced with "data_root" in the
     filename and path. 
     
     Works with either .mvmelst files or .zip files. Unzipping is done
