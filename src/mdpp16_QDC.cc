@@ -25,7 +25,7 @@ mdpp16_QDC::mdpp16_QDC(TString name)
     roottree = new TTree("MDPP16", "MDPP16 data");
 
     roottree->Branch(Form("ADC_short[%i]", num_chn), &ADC_short, Form("ADC_short[%i]/I", num_chn));
-    roottree->Branch(Form("ADC_long[%i]", num_chn), &ADC_short, Form("ADC_long[%i]/I", num_chn));
+    roottree->Branch(Form("ADC_long[%i]", num_chn), &ADC_long, Form("ADC_long[%i]/I", num_chn));
     roottree->Branch(Form("TDC[%i]", num_chn), &TDC, Form("TDC[%i]/I", num_chn));
     //roottree->Branch(Form("PSD[%i]", num_chn), &PSD, Form("PSD[%i]/I", num_chn));
     roottree->Branch("time_stamp", &time_stamp);
@@ -191,7 +191,7 @@ void mdpp16_QDC::setADC(int chn, int value){
 
 void mdpp16_QDC::setADC_short(int chn, int value){ 
     ADC_short[chn%num_chn] = value; 
-    hADC_long[chn%num_chn]->AddBinContent(value);
+    hADC_short[chn%num_chn]->AddBinContent(value);
 }
 
 void mdpp16_QDC::setADC_long(int chn, int value){ 
