@@ -1,7 +1,6 @@
 #ifndef mdpp16_SCP_h
 #define mdpp16_SCP_h 1
 
-#include "TFile.h"
 #include "TTree.h"
 #include "TString.h"
 #include "TH1F.h"
@@ -38,7 +37,6 @@ class mdpp16_SCP
      
     static const int num_chn = 16;
 
-    TFile *rootfile;
     TTree *roottree;
 
     TString filename;

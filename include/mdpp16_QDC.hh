@@ -1,7 +1,6 @@
 #ifndef mdpp16_QDC_h
 #define mdpp16_QDC_h 1
 
-#include "TFile.h"
 #include "TTree.h"
 #include "TString.h"
 #include "TH1F.h"
