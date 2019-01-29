@@ -18,18 +18,14 @@ mdpp16_SCP::mdpp16_SCP(TString name)
 {
     //create root file and tre
     filename = name;
-    rootfilename = name.ReplaceAll("mvmelst","root");
-    rootfilename = name.ReplaceAll("listfiles","data_root");
-    cout << "Root file name: " << rootfilename << endl;
-    rootfile = new TFile(rootfilename, "RECREATE");
-    roottree = new TTree("MDPP16", "MDPP16 data");
+    roottree = new TTree("MDPP16_SCP", "MDPP16 data");
 
     roottree->Branch(Form("ADC[%i]", num_chn), &ADC, Form("ADC[%i]/I", num_chn));
     roottree->Branch(Form("TDC[%i]", num_chn), &TDC, Form("TDC[%i]/I", num_chn));
     roottree->Branch("time_stamp", &time_stamp);
     roottree->Branch("extendedtime", &extendedtime);
-    roottree->Branch("pileup", &pileup);
-    roottree->Branch("overflow", &overflow);
+    roottree->Branch(Form("overflow[%i]", num_chn), &overflow, Form("overflow[%i]/O", num_chn));
+    roottree->Branch(Form("pileup[%i]", num_chn), &pileup, Form("pileup[%i]/O", num_chn));
     roottree->Branch("seconds", &seconds);
 
     //initialize variables
@@ -54,7 +50,7 @@ mdpp16_SCP::mdpp16_SCP(TString name)
     //create histograms
     for (int i=0; i<num_chn; i++){
         hADC[i] = new TH1F(Form("hADC%i", i), Form("hADC%i", i), 16*4096, 0, 16*4096);
-        hTDC[i] = new TH1F(Form("hTDC%i", i), Form("hTDC%i", i), 16*4096, 0, 16*4096);
+        hTDC[i] = new TH1F(Form("hTDC_SCP%i", i), Form("hTDC%i", i), 16*4096, 0, 16*4096);
         hEn[i]  = new TH1F(Form("hEn%i", i),  Form("hEn%i", i),  16*4096, min[i], max[i]);
     }
 
@@ -71,13 +67,13 @@ void mdpp16_SCP::initEvent()
     //call at start of event
     lasttime = time_stamp;
     time_stamp = 0;
+    seconds = 0;
     for (int i=0; i<num_chn; i++){
         ADC[i] = 0;
         TDC[i] = 0;
+        pileup[i] = 0;
+        overflow[i] = 0;
     }
-    pileup = 0;
-    overflow = 0;
-    seconds = 0;
 }
 
 void mdpp16_SCP::writeEvent()
@@ -92,25 +88,24 @@ void mdpp16_SCP::writeEvent()
 void mdpp16_SCP::writeTree()
 {
     //call at end of file
-    rootfile->cd();
     roottree->Write();
     
-    TNamed startT("start_time",start_time.AsSQLString());
-    TNamed stopT("stop_time",stop_time.AsSQLString());
+    TNamed startT("start_time_SCP",start_time.AsSQLString());
+    TNamed stopT("stop_time_SCP",stop_time.AsSQLString());
     startT.Write();
     stopT.Write();
     m.Write(Form("m[%i]", num_chn));
     b.Write(Form("b[%i]", num_chn));
+}
 
-    rootfile->mkdir("histos");
-    rootfile->cd("histos");
+void mdpp16_SCP::writeHistos()
+{
     for (int i=0; i<num_chn; i++){
         hADC[i]->Write();
-        hTDC[i]->Write();
+        hTDC[i]->Write(Form("hTDC%i", i));
         hEn[i]->Write();
     }
 
-    rootfile->Close();
 }
 
 
@@ -119,12 +114,13 @@ void mdpp16_SCP::printValues()
     
     cout << "Chn \t ADC \t TDC" << endl;
     for (int i=0; i<num_chn; i++){
-        cout << i << "\t" << ADC[i] << "\t" << TDC[i] << endl;
+        cout << "-- Channel " << i << " --" << endl;
+        cout << "ADC: " << ADC[i] << "\tTDC: " << TDC[i] << endl;
+        cout << "Pileup flag:\t" << pileup[i] << endl;
+        cout << "Overflow/underflow flag:\t" << overflow[i] << endl;
     }
     cout << "Time:\t" <<time_stamp << endl;
     cout << "Extended time:\t" << extendedtime << endl;
-    cout << "Pileup flag:\t" << pileup << endl;
-    cout << "Overflow/underflow flag:\t" << overflow << endl;
 
 }
 
@@ -289,11 +285,11 @@ void mdpp16_SCP::setExtendedTime(int value){
     extendedtime = value; 
 }
 
-void mdpp16_SCP::setPileup(int value){
-    pileup = value;
+void mdpp16_SCP::setPileup(int chn, bool value){
+    pileup[chn%num_chn] = value;
 }
 
-void mdpp16_SCP::setOverflow(int value){
-    overflow = value;
+void mdpp16_SCP::setOverflow(int chn, bool value){
+    overflow[chn%num_chn] = value;
 }
 

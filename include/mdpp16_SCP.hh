@@ -21,6 +21,7 @@ class mdpp16_SCP
     void printValues();
     void writeEvent();  //call at end of event
     void writeTree();   //call at end of file
+    void writeHistos();   //call at end of file
 
     int readAnalysis();
     int readLog();
@@ -30,8 +31,8 @@ class mdpp16_SCP
     void setTDC(int chn, int value);
     void setTime(int value);
     void setExtendedTime(int value);
-    void setPileup(int value);
-    void setOverflow(int value);
+    void setPileup(int chn, bool value);
+    void setOverflow(int chn, bool value);
   
   private:
      
@@ -41,15 +42,14 @@ class mdpp16_SCP
     TTree *roottree;
 
     TString filename;
-    TString rootfilename;
     
     //values from MDPP-16
     int ADC[num_chn];
     int TDC[num_chn];
     int time_stamp;
     int extendedtime;
-    int pileup;
-    int overflow;
+    bool pileup[num_chn];
+    bool overflow[num_chn];
 
     //values from messages.log
     TDatime start_time;

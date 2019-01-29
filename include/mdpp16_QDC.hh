@@ -21,6 +21,7 @@ class mdpp16_QDC
     void printValues();
     void writeEvent();  //call at end of event
     void writeTree();   //call at end of file
+    void writeHistos();   //call at end of file
 
     int readLog();
 
@@ -31,26 +32,23 @@ class mdpp16_QDC
     void setTDC(int chn, int value);
     void setTime(int value);
     void setExtendedTime(int value);
-    void setOverflow(int value);
-    void setPileup(int value);
+    void setOverflow(int chn, bool value);
   
   private:
      
     static const int num_chn = 16;
 
-    TFile *rootfile;
     TTree *roottree;
 
     TString filename;
-    TString rootfilename;
     
     //values from MDPP-16
     int ADC_long[num_chn];
     int ADC_short[num_chn];
     int TDC[num_chn];
+    bool overflow[num_chn];
     int time_stamp;
     int extendedtime;
-    int overflow;
 
     //values from messages.log
     TDatime start_time;

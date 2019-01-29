@@ -18,19 +18,14 @@ mdpp16_QDC::mdpp16_QDC(TString name)
 {
     //create root file and tre
     filename = name;
-    rootfilename = name.ReplaceAll("mvmelst","root");
-    rootfilename = name.ReplaceAll("listfiles","data_root");
-    cout << "Root file name: " << rootfilename << endl;
-    rootfile = new TFile(rootfilename, "RECREATE");
-    roottree = new TTree("MDPP16", "MDPP16 data");
+    roottree = new TTree("MDPP16_QDC", "MDPP16 data");
 
     roottree->Branch(Form("ADC_short[%i]", num_chn), &ADC_short, Form("ADC_short[%i]/I", num_chn));
     roottree->Branch(Form("ADC_long[%i]", num_chn), &ADC_long, Form("ADC_long[%i]/I", num_chn));
     roottree->Branch(Form("TDC[%i]", num_chn), &TDC, Form("TDC[%i]/I", num_chn));
-    //roottree->Branch(Form("PSD[%i]", num_chn), &PSD, Form("PSD[%i]/I", num_chn));
+    roottree->Branch(Form("overflow[%i]", num_chn), &overflow, Form("overflow[%i]/O", num_chn));
     roottree->Branch("time_stamp", &time_stamp);
     roottree->Branch("extendedtime", &extendedtime);
-    roottree->Branch("overflow", &overflow);
     roottree->Branch("seconds", &seconds);
 
     //initialize variables
@@ -47,7 +42,7 @@ mdpp16_QDC::mdpp16_QDC(TString name)
     for (int i=0; i<num_chn; i++){
         hADC_long[i] = new TH1F(Form("hADC_long%i", i), Form("hADC_long%i", i), 4096, 0, 4096);
         hADC_short[i] = new TH1F(Form("hADC_short%i", i), Form("hADC_short%i", i), 4096, 0, 4096);
-        hTDC[i] = new TH1F(Form("hTDC%i", i), Form("hTDC%i", i), 16*4096, 0, 16*4096);
+        hTDC[i] = new TH1F(Form("hTDC_QDC%i", i), Form("hTDC%i", i), 16*4096, 0, 16*4096);
         hPSD[i]  = new TH1F(Form("hPSD%i", i), Form("hPSD%i", i), 4096, -4.096, 4.096);
     }
 
@@ -63,14 +58,14 @@ void mdpp16_QDC::initEvent()
     //call at start of event
     lasttime = time_stamp;
     time_stamp = 0;
+    seconds = 0;
     for (int i=0; i<num_chn; i++){
         ADC_long[i] = 0;
         ADC_short[i] = 0;
         TDC[i] = 0;
         PSD[i] = 0;
+        overflow[i] = 0;
     }
-    overflow = 0;
-    seconds = 0;
 }
 
 void mdpp16_QDC::writeEvent()
@@ -93,24 +88,23 @@ void mdpp16_QDC::writeEvent()
 void mdpp16_QDC::writeTree()
 {
     //call at end of file
-    rootfile->cd();
     roottree->Write();
     
-    TNamed startT("start_time",start_time.AsSQLString());
-    TNamed stopT("stop_time",stop_time.AsSQLString());
+    TNamed startT("start_time_QDC",start_time.AsSQLString());
+    TNamed stopT("stop_time_QDC",stop_time.AsSQLString());
     startT.Write();
     stopT.Write();
+}
 
-    rootfile->mkdir("histos");
-    rootfile->cd("histos");
+void mdpp16_QDC::writeHistos()
+{
     for (int i=0; i<num_chn; i++){
         hADC_short[i]->Write();
         hADC_long[i]->Write();
-        hTDC[i]->Write();
+        hTDC[i]->Write(Form("hTDC%i", i));
         hPSD[i]->Write();
     }
 
-    rootfile->Close();
 }
 
 
@@ -119,11 +113,12 @@ void mdpp16_QDC::printValues()
     
     cout << "Chn \t ADC \t TDC" << endl;
     for (int i=0; i<num_chn; i++){
-        cout << i << "\t" << ADC_short[i] << "\t" << ADC_long[i] << "\t" << TDC[i] << endl;
+        cout << "-- " << i << " --" << endl;
+        cout << "ADC short: " << ADC_short[i] << "\tADC_long: " << ADC_long[i] << "\tTDC: " << TDC[i] << endl;
+        cout << "Overflow/underflow flag:\t" << overflow[i] << endl;
     }
     cout << "Time:\t" <<time_stamp << endl;
     cout << "Extended time:\t" << extendedtime << endl;
-    cout << "Overflow/underflow flag:\t" << overflow << endl;
 
 }
 
@@ -204,9 +199,6 @@ void mdpp16_QDC::setTDC(int chn, int value){
     hTDC[chn%num_chn]->AddBinContent(value);
 }
 
-void mdpp16_QDC::setPileup(int value){
-}
-
 void mdpp16_QDC::setTime(int value){
     time_stamp = value;
 }
@@ -216,7 +208,7 @@ void mdpp16_QDC::setExtendedTime(int value){
     extendedtime = value; 
 }
 
-void mdpp16_QDC::setOverflow(int value){
-    overflow = value;
+void mdpp16_QDC::setOverflow(int chn, bool value){
+    overflow[chn%num_chn] = value;
 }
 

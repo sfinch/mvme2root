@@ -27,6 +27,7 @@
 #include <map>
 
 #include "TString.h"
+#include "TFile.h"
 #include "mdpp16_SCP.hh"
 #include "mdpp16_QDC.hh"
 #include "TROOT.h"
@@ -243,6 +244,8 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
     using namespace listfile;
 
     bool continueReading = true;
+    bool SCPon = 0;
+    bool QDCon = 0;
     int counter = 0;
     int pu = 0;
     int ov = 0;
@@ -252,8 +255,13 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
     int extended = 0;
     int sig = 0;
     
-    mdpp16_SCP rootdata(filename);
-    //mdpp16_QDC rootdata(filename);
+    TString rootfilename = filename;
+    rootfilename.ReplaceAll("mvmelst","root");
+    rootfilename.ReplaceAll("listfiles","data_root");
+    cout << "Root file name: " << rootfilename << endl;
+    TFile *rootfile = new TFile(rootfilename, "RECREATE");
+    mdpp16_SCP rootdata_SCP(filename);
+    mdpp16_QDC rootdata_QDC(filename);
 
     while (continueReading)
     {
@@ -282,7 +290,8 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                             cout << '\r' << "Processing event " << counter;
                         }
                     }
-                    rootdata.initEvent();
+                    rootdata_SCP.initEvent();
+                    rootdata_QDC.initEvent();
                     pu = 0;
                     ov = 0;
                     chn = 0;
@@ -327,8 +336,9 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                                     cout << "\tFill" << endl;
                             }
                             else{
-                                //Check for MDPP-16
-                                if ((moduleType==4)||(moduleType==7)||(moduleType==8)){
+                                //Check for MDPP-16 SCP/RCP
+                                if ((moduleType==4)||(moduleType==7)){
+                                    SCPon = 1;
                                     sig = bitExtractor(subEventData, 4, 28);
                                     if (sig==4){ //header
                                         if (optverbose)
@@ -336,44 +346,69 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                                     }
                                     else if (sig==1){//data
                                         //MDPP16 with SCP or RCP firmware
-                                        if ((moduleType==4)||(moduleType==7)){
-                                            chn = bitExtractor(subEventData, 5, 16);
-                                            data = bitExtractor(subEventData, 16, 0);
-                                            rootdata.setADC(chn, data);
+                                        chn = bitExtractor(subEventData, 5, 16);
+                                        data = bitExtractor(subEventData, 16, 0);
+                                        rootdata_SCP.setADC(chn, data);
 
-                                            if (chn<16){
-                                                pu = bitExtractor(subEventData, 1, 23);
-                                                ov = bitExtractor(subEventData, 1, 22);
-                                                rootdata.setPileup(pu);
-                                                rootdata.setOverflow(ov);
-                                            }
-                                        }
-                                        //MDPP16 with QDC
-                                        if (moduleType==8){
-                                            chn = bitExtractor(subEventData, 6, 16);
-                                            data = bitExtractor(subEventData, 16, 0);
-                                            rootdata.setADC(chn, data);
-
-                                            if (chn<16){
-                                                ov = bitExtractor(subEventData, 1, 22);
-                                                rootdata.setOverflow(ov);
-                                            }
+                                        if (chn<16){
+                                            pu = bitExtractor(subEventData, 1, 23);
+                                            ov = bitExtractor(subEventData, 1, 22);
+                                            rootdata_SCP.setPileup(chn, pu);
+                                            rootdata_SCP.setOverflow(chn, ov);
                                         }
                                         if (optverbose){
                                             cout << "\tData" << endl;
-                                            cout << "\t" << pu << "\t" << ov << "\t" 
+                                            cout << "\t" << ov << "\t" 
                                                  << chn << "\t" << data << endl;
                                         }
                                     }
                                     else if(sig==2){//extended time stamp
                                         extended = bitExtractor(subEventData, 16, 0);
-                                        rootdata.setExtendedTime(extended);
+                                        rootdata_SCP.setExtendedTime(extended);
                                         if (optverbose)
                                             cout << "\tExtended time stamp:\t" << extended << endl;
                                     }
                                     else if(sig>=12){//end of event
                                         time = bitExtractor(subEventData, 30, 0);
-                                        rootdata.setTime(time);
+                                        rootdata_SCP.setTime(time);
+                                        if (optverbose){
+                                            cout << "\tEnd of event" << endl;
+                                            cout << "\tTime:\t" << time << endl;
+                                        }
+                                    }
+                                }
+                                //MDPP16 with QDC
+                                if (moduleType==8){
+                                    QDCon = 1;
+                                    sig = bitExtractor(subEventData, 4, 28);
+                                    if (sig==4){ //header
+                                        if (optverbose)
+                                            cout << "\tHeader" << endl;
+                                    }
+                                    else if (sig==1){//data
+                                        chn = bitExtractor(subEventData, 6, 16);
+                                        data = bitExtractor(subEventData, 16, 0);
+                                        rootdata_QDC.setADC(chn, data);
+
+                                        if (chn<16){
+                                            ov = bitExtractor(subEventData, 1, 22);
+                                            rootdata_QDC.setOverflow(chn, ov);
+                                        }
+                                    }
+                                    if (optverbose){
+                                        cout << "\tData" << endl;
+                                        cout << "\t" << ov << "\t" 
+                                             << chn << "\t" << data << endl;
+                                    }
+                                    else if(sig==2){//extended time stamp
+                                        extended = bitExtractor(subEventData, 16, 0);
+                                        rootdata_QDC.setExtendedTime(extended);
+                                        if (optverbose)
+                                            cout << "\tExtended time stamp:\t" << extended << endl;
+                                    }
+                                    else if(sig>=12){//end of event
+                                        time = bitExtractor(subEventData, 30, 0);
+                                        rootdata_QDC.setTime(time);
                                         if (optverbose){
                                             cout << "\tEnd of event" << endl;
                                             cout << "\tTime:\t" << time << endl;
@@ -389,7 +424,8 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                     infile.read((char *)&eventEndMarker, sizeof(u32));
                     if (optverbose)
                         printf("   eventEndMarker=0x%08x\n", eventEndMarker);
-                    rootdata.writeEvent();
+                    rootdata_QDC.writeEvent();
+                    rootdata_SCP.writeEvent();
                     counter++;
                 } break;
 
@@ -414,7 +450,6 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                             << " bytes left after Listfile End Section" << endl;
                     }
 
-
                     break;
                 }
 
@@ -427,7 +462,23 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
         }
     }
     cout << counter << " events total" << endl;
-    rootdata.writeTree();
+    
+    rootfile->cd();
+
+    if(SCPon){
+        rootdata_SCP.writeTree();
+        rootfile->mkdir("histos_SCP");
+        rootfile->cd("histos_SCP");
+        rootdata_SCP.writeHistos();
+    }
+    if(QDCon){
+        rootdata_QDC.writeTree();
+        rootfile->mkdir("histos_QDC");
+        rootfile->cd("histos_QDC");
+        rootdata_QDC.writeHistos();
+    }
+
+    rootfile->Close();
 }
 
 void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
