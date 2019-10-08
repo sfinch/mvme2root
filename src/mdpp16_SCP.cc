@@ -233,7 +233,7 @@ int mdpp16_SCP::readAnalysis(){
             do{
                 infile.getline(line,200);
                 sLine = line;
-                if (sLine.Contains("mdpp16.amplitude")){
+                if (sLine.Contains("amplitude")){
                     cout << "Found ADC calibration" << endl;
                     foundCal=1;
                 }
