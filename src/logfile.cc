@@ -73,8 +73,8 @@ int logfile::readLog(){
         }
     }while(!(infile.eof()));
 
-    TNamed startT("start_time_SCP",start_time.AsSQLString());
-    TNamed stopT("stop_time_SCP",stop_time.AsSQLString());
+    TNamed startT("start_time",start_time.AsSQLString());
+    TNamed stopT("stop_time",stop_time.AsSQLString());
     startT.Write();
     stopT.Write();
 

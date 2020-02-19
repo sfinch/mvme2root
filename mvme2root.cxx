@@ -339,6 +339,7 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                             }
                             else{
                                 //Check for MDPP-16 SCP/RCP
+                                if (moduleType==0) moduleType=4;
                                 if ((moduleType==4)||(moduleType==7)){
                                     SCPon = 1;
                                     sig = bitExtractor(subEventData, 4, 28);
