@@ -22,8 +22,6 @@ class mdpp16_QDC
     void writeTree();   //call at end of file
     void writeHistos();   //call at end of file
 
-    int readLog();
-
     //setters
     void setADC(int chn, int value);
     void setADC_short(int chn, int value);
@@ -48,10 +46,6 @@ class mdpp16_QDC
     bool overflow[num_chn];
     int time_stamp;
     int extendedtime;
-
-    //values from messages.log
-    TDatime start_time;
-    TDatime stop_time;
 
     //calculated  values
     double PSD[num_chn];

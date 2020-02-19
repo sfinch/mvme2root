@@ -30,6 +30,7 @@
 #include "TFile.h"
 #include "mdpp16_SCP.hh"
 #include "mdpp16_QDC.hh"
+#include "logfile.hh"
 #include "TROOT.h"
 
 typedef uint8_t  u8;
@@ -260,6 +261,7 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
     rootfilename.ReplaceAll("listfiles","data_root");
     cout << "Root file name: " << rootfilename << endl;
     TFile *rootfile = new TFile(rootfilename, "RECREATE");
+    logfile readlog(filename);
     mdpp16_SCP rootdata_SCP(filename);
     mdpp16_QDC rootdata_QDC(filename);
 

@@ -23,7 +23,6 @@ class mdpp16_SCP
     void writeHistos();   //call at end of file
 
     int readAnalysis();
-    int readLog();
 
     //setters
     void setADC(int chn, int value);
@@ -48,10 +47,6 @@ class mdpp16_SCP
     int extendedtime;
     bool pileup[num_chn];
     bool overflow[num_chn];
-
-    //values from messages.log
-    TDatime start_time;
-    TDatime stop_time;
 
     //values from analysis.analysis (energy calibration)
     TVectorD m;
