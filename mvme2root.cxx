@@ -465,7 +465,7 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
         }
     }
     cout << counter << " events total" << endl;
-    
+
     rootfile->cd();
 
     if(SCPon){
@@ -481,6 +481,7 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
         rootdata_QDC.writeHistos();
     }
 
+    rootfile->Write();
     rootfile->Close();
 }
 
