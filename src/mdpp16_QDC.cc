@@ -23,6 +23,7 @@ mdpp16_QDC::mdpp16_QDC(TString name)
     roottree->Branch(Form("ADC_long[%i]", num_chn), &ADC_long, Form("ADC_long[%i]/I", num_chn));
     roottree->Branch(Form("TDC[%i]", num_chn), &TDC, Form("TDC[%i]/I", num_chn));
     roottree->Branch(Form("overflow[%i]", num_chn), &overflow, Form("overflow[%i]/O", num_chn));
+    roottree->Branch(Form("Trigger[%i]", num_trigger), &Trigger, Form("Trigger[%i]/I", num_trigger));
     roottree->Branch("time_stamp", &time_stamp);
     roottree->Branch("extendedtime", &extendedtime);
     roottree->Branch("seconds", &seconds);
@@ -54,6 +55,9 @@ void mdpp16_QDC::initEvent()
     lasttime = time_stamp;
     time_stamp = 0;
     seconds = 0;
+    for (int i=0; i<num_trigger; i++){
+        Trigger[i] = 0;
+    }
     for (int i=0; i<num_chn; i++){
         ADC_long[i] = 0;
         ADC_short[i] = 0;
@@ -108,6 +112,9 @@ void mdpp16_QDC::printValues()
         cout << "ADC short: " << ADC_short[i] << "\tADC_long: " << ADC_long[i] << "\tTDC: " << TDC[i] << endl;
         cout << "Overflow/underflow flag:\t" << overflow[i] << endl;
     }
+    for (int i=0; i<num_trigger; i++){
+        cout << "Trigger " << i << ":\t" << Trigger[i] << endl;
+    }
     cout << "Time:\t" <<time_stamp << endl;
     cout << "Extended time:\t" << extendedtime << endl;
 
@@ -123,7 +130,10 @@ void mdpp16_QDC::setADC(int chn, int value){
         TDC[chn%num_chn] = value;
         hTDC[chn%num_chn]->AddBinContent(value);
     }
-    else{
+    else if(chn<3*num_chn){
+        Trigger[chn%num_trigger] = value;
+    }
+    else if(chn<4*num_chn){
         ADC_short[chn%num_chn] = value; 
         hADC_short[chn%num_chn]->AddBinContent(value);
     }
@@ -142,6 +152,10 @@ void mdpp16_QDC::setADC_long(int chn, int value){
 void mdpp16_QDC::setTDC(int chn, int value){
     TDC[chn%num_chn] = value; 
     hTDC[chn%num_chn]->AddBinContent(value);
+}
+
+void mdpp16_QDC::setTrigger(int chn, int value){
+    Trigger[chn%num_trigger] = value; 
 }
 
 void mdpp16_QDC::setTime(int value){

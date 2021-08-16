@@ -349,7 +349,7 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                                     }
                                     else if (sig==1){//data
                                         //MDPP16 with SCP or RCP firmware
-                                        chn = bitExtractor(subEventData, 5, 16);
+                                        chn = bitExtractor(subEventData, 6, 16);
                                         data = bitExtractor(subEventData, 16, 0);
                                         rootdata_SCP.setADC(chn, data);
 
@@ -359,6 +359,9 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                                             rootdata_SCP.setPileup(chn, pu);
                                             rootdata_SCP.setOverflow(chn, ov);
                                         }
+                                        //if ((chn==32)||(chn==33)){
+                                        //    rootdata_SCP.setTrigger(chn%32, data);
+                                       // }
                                         if (optverbose){
                                             cout << "\tData" << endl;
                                             cout << "\t" << ov << "\t" 
@@ -397,6 +400,9 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
                                             ov = bitExtractor(subEventData, 1, 22);
                                             rootdata_QDC.setOverflow(chn, ov);
                                         }
+                                        //if ((chn==32)||(chn==33)){
+                                        //    rootdata_QDC.setTrigger(chn%32, data);
+                                        //}
                                     }
                                     if (optverbose){
                                         cout << "\tData" << endl;
@@ -467,13 +473,13 @@ void process_listfile(std::ifstream &infile, TString filename, bool optverbose)
     cout << counter << " events total" << endl;
 
     rootfile->cd();
-
     if(SCPon){
         rootdata_SCP.writeTree();
         rootfile->mkdir("histos_SCP");
         rootfile->cd("histos_SCP");
         rootdata_SCP.writeHistos();
     }
+    rootfile->cd();
     if(QDCon){
         rootdata_QDC.writeTree();
         rootfile->mkdir("histos_QDC");

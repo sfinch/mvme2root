@@ -30,10 +30,12 @@ class mdpp16_QDC
     void setTime(int value);
     void setExtendedTime(int value);
     void setOverflow(int chn, bool value);
+    void setTrigger(int chn, int value);
   
   private:
      
     static const int num_chn = 16;
+    static const int num_trigger = 2;
 
     TTree *roottree;
 
@@ -43,6 +45,7 @@ class mdpp16_QDC
     int ADC_long[num_chn];
     int ADC_short[num_chn];
     int TDC[num_chn];
+    int Trigger[num_trigger];
     bool overflow[num_chn];
     int time_stamp;
     int extendedtime;

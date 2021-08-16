@@ -27,6 +27,7 @@ class mdpp16_SCP
     //setters
     void setADC(int chn, int value);
     void setTDC(int chn, int value);
+    void setTrigger(int chn, int value);
     void setTime(int value);
     void setExtendedTime(int value);
     void setPileup(int chn, bool value);
@@ -35,6 +36,7 @@ class mdpp16_SCP
   private:
      
     static const int num_chn = 16;
+    static const int num_trigger = 2;
 
     TTree *roottree;
 
@@ -43,6 +45,7 @@ class mdpp16_SCP
     //values from MDPP-16
     int ADC[num_chn];
     int TDC[num_chn];
+    int Trigger[num_trigger];
     int time_stamp;
     int extendedtime;
     bool pileup[num_chn];

@@ -25,6 +25,7 @@ mdpp16_SCP::mdpp16_SCP(TString name)
     roottree->Branch("extendedtime", &extendedtime);
     roottree->Branch(Form("overflow[%i]", num_chn), &overflow, Form("overflow[%i]/O", num_chn));
     roottree->Branch(Form("pileup[%i]", num_chn), &pileup, Form("pileup[%i]/O", num_chn));
+    roottree->Branch(Form("Trigger[%i]", num_trigger), &Trigger, Form("Trigger[%i]/I", num_trigger));
     roottree->Branch("seconds", &seconds);
 
     //initialize variables
@@ -64,6 +65,9 @@ void mdpp16_SCP::initEvent()
     lasttime = time_stamp;
     time_stamp = 0;
     seconds = 0;
+    for (int i=0; i<num_trigger; i++){
+        Trigger[i] = 0;
+    }
     for (int i=0; i<num_chn; i++){
         ADC[i] = 0;
         TDC[i] = 0;
@@ -110,6 +114,9 @@ void mdpp16_SCP::printValues()
         cout << "ADC: " << ADC[i] << "\tTDC: " << TDC[i] << endl;
         cout << "Pileup flag:\t" << pileup[i] << endl;
         cout << "Overflow/underflow flag:\t" << overflow[i] << endl;
+    }
+    for (int i=0; i<num_trigger; i++){
+        cout << "Trigger " << i << ":\t" << Trigger[i] << endl;
     }
     cout << "Time:\t" <<time_stamp << endl;
     cout << "Extended time:\t" << extendedtime << endl;
@@ -210,16 +217,18 @@ void mdpp16_SCP::setADC(int chn, int value){
         TDC[chn%num_chn] = value;
         hTDC[chn%num_chn]->AddBinContent(value);
     }
-    else{
-        ADC[chn%num_chn] = value; 
-        hADC[chn%num_chn]->AddBinContent(value);
-        hEn[chn%num_chn]->AddBinContent(value);
+    else if(chn<3*num_chn){
+        Trigger[chn%num_trigger] = value; 
     }
 }
 
 void mdpp16_SCP::setTDC(int chn, int value){
     TDC[chn%num_chn] = value; 
     hTDC[chn%num_chn]->AddBinContent(value);
+}
+
+void mdpp16_SCP::setTrigger(int chn, int value){
+    Trigger[chn%num_trigger] = value; 
 }
 
 void mdpp16_SCP::setTime(int value){
